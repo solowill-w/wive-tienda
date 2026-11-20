@@ -1,7 +1,7 @@
 {
   "framework": null,
   "installCommand": "",
-  "buildCommand": "python3 scripts/build.py",
+  "buildCommand": "python3 scripts/run_build.py",
   "outputDirectory": "public",
   "headers": [
     {
