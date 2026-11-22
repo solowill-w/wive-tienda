@@ -238,7 +238,7 @@ main{animation:in .24s cubic-bezier(.2,.8,.2,1)}
 .card .pic{position:relative;display:block;height:120px;margin-bottom:10px;overflow:hidden;border-radius:14px;isolation:isolate;transform:translateZ(0)}
 .g1 .card .pic{height:170px}
 .card .pic:not(.ph){display:grid;place-items:center}
-.card .pic.ph{background:#fff}
+.card .pic.ph{background:#141622}
 .card .pic.ph img{position:absolute;inset:0;width:100%;height:100%;max-width:none;max-height:none;object-fit:contain;border-radius:0;display:block}
 .card .badge{z-index:3}
 .card:not(.f):active .pic>img{transform:scale(1.04)}
@@ -468,8 +468,8 @@ async function loadAdmin(){
 }
 async function checkAdmin(){try{const {data:{session}}=await sb.auth.getSession();if(!session){authed=false;return}const {data}=await sb.from('admins').select('user_id').eq('user_id',session.user.id).maybeSingle();authed=!!data;if(authed)await loadAdmin()}catch(e){authed=false}}
 async function setSet(p){const q={...p};if(q.links)q.links=q.links.concat(S.ship&&S.ship.length?[{k:'ship',zones:S.ship}]:[]);const {error}=await sb.from('settings').update(q).eq('id',1);if(error)throw error;if(p.links)S.links=p.links;if(p.carousel)S.car=p.carousel}
-const shrink=(f,mx,qa)=>new Promise(ok=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,mx/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);c.toBlob(b=>ok(b),'image/jpeg',qa)};im.onerror=()=>ok(null);im.src=r.result};r.onerror=()=>ok(null);r.readAsDataURL(f)});
-async function upImg(blob,folder){const path=`${folder}/${crypto.randomUUID()}.jpg`;const {error}=await sb.storage.from('product-images').upload(path,blob,{contentType:'image/jpeg',cacheControl:'31536000'});if(error)throw error;return sb.storage.from('product-images').getPublicUrl(path).data.publicUrl}
+const shrink=(f,mx,qa)=>new Promise(ok=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,mx/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);const x=c.getContext('2d');x.drawImage(im,0,0,c.width,c.height);let tr=false;try{if(/png|webp|gif/i.test(f.type)){const d=x.getImageData(0,0,c.width,c.height).data;for(let i=3;i<d.length;i+=16){if(d[i]<250){tr=true;break}}}}catch(e){}c.toBlob(b=>ok(b),tr?'image/png':'image/jpeg',qa)};im.onerror=()=>ok(null);im.src=r.result};r.onerror=()=>ok(null);r.readAsDataURL(f)});
+async function upImg(blob,folder){const png=blob.type=='image/png';const path=`${folder}/${crypto.randomUUID()}.${png?'png':'jpg'}`;const {error}=await sb.storage.from('product-images').upload(path,blob,{contentType:png?'image/png':'image/jpeg',cacheControl:'31536000'});if(error)throw error;return sb.storage.from('product-images').getPublicUrl(path).data.publicUrl}
 function locP(){try{if(localStorage.getItem('wive_v2_migrated'))return[];const o=JSON.parse(localStorage.getItem('wive_v2'));if(!o||!Array.isArray(o.prods))return[];const have=new Set(S.prods.map(p=>p.code));return o.prods.filter(p=>p&&p.n&&p.p>0&&!have.has(String(p.code||'').toUpperCase()))}catch(e){return[]}}
 const locBanner=()=>{const L=locP();return L.length?`<div class="sec"><h3>Datos locales detectados</h3><p class="mut">Este navegador tiene ${L.length} producto(s) guardado(s) antes de la migración que no están en la base de datos.</p><button class="btn w" data-act="migloc">Migrar ${L.length} producto(s)</button></div>`:''};
 const NET={insta:'Instagram',facebook:'Facebook',tiktok:'TikTok',youtube:'YouTube',x:'X',globe:'Sitio web',chat:'WhatsApp'};
