@@ -94,7 +94,7 @@ select option{color:#141622}::placeholder{color:#8a8fa3}
 .li{transition:opacity .3s,transform .3s,max-height .3s,padding .3s}.li.out{opacity:0;transform:translateX(60px);max-height:0!important;padding-top:0;padding-bottom:0;overflow:hidden}
 .shake{animation:shk .45s}@keyframes shk{20%,60%{transform:translateX(-9px)}40%,80%{transform:translateX(9px)}}
 #pg{position:fixed;top:env(safe-area-inset-top,0px);left:0;height:3px;width:100%;transform-origin:0 50%;transform:scaleX(0);background:linear-gradient(90deg,#ff8a1f,#ff6a00);z-index:12}
-#ts{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translate(-50%,60px);opacity:0;background:#fff;color:#141622;border-radius:99px;padding:10px 12px 10px 18px;font-weight:600;display:flex;gap:10px;align-items:center;z-index:70;transition:transform .45s cubic-bezier(.2,.9,.3,1.3),opacity .3s;pointer-events:none;box-shadow:0 10px 30px rgba(0,0,0,.4);white-space:nowrap}#ts.on{transform:translate(-50%,0);opacity:1;pointer-events:auto}
+#ts{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translate(-50%,60px);opacity:0;background:#fff;color:#141622;border-radius:22px;padding:12px 16px;font-weight:600;line-height:1.35;display:flex;gap:10px;align-items:center;z-index:70;width:max-content;max-width:calc(100vw - 32px);box-sizing:border-box;transition:transform .45s cubic-bezier(.2,.9,.3,1.3),opacity .3s;pointer-events:none;box-shadow:0 10px 30px rgba(0,0,0,.4);white-space:normal;overflow-wrap:anywhere}#ts svg{flex:none}#ts.on{transform:translate(-50%,0);opacity:1;pointer-events:auto}
 .ck{stroke-dasharray:24;stroke-dashoffset:24;animation:dr .5s .1s forwards}@keyframes dr{to{stroke-dashoffset:0}}
 #wo{position:fixed;inset:0;background:rgba(20,22,34,.9);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);display:grid;place-items:center;z-index:80;opacity:0;pointer-events:none;transition:opacity .3s}#wo.on{opacity:1}#wo>div{transform:scale(.8);transition:transform .4s cubic-bezier(.2,.9,.3,1.4)}#wo.on>div{transform:none}
 .spn{width:56px;height:56px;border-radius:50%;border:5px solid rgba(255,255,255,.2);border-top-color:var(--or);animation:sp .8s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}
@@ -701,10 +701,13 @@ const descHTML=d=>'<div class="dsc">'+String(d).split(/\r?\n/).map(l=>l.trim()).
 let shipSel='';
 const shipZ=()=>S.ship.find(z=>z.n==shipSel);
 const cartT=()=>S.cart.reduce((a,c)=>a+c.q*(S.prods.find(p=>p.id==c.id)||{p:0}).p,0);
-const shipTxt=()=>{const z=shipZ();return z?`Envío a <b style="color:#fff">${esc(z.n)}</b>: <b style="color:#ff8a1f">${+z.c>0?gs(+z.c):'Gratis'}</b>${z.t?`<br>Tiempo estimado: <b style="color:#fff">${esc(z.t)}</b>`:''}`:'Elegí tu ciudad o país para ver el costo y el tiempo estimado.'};
-const totTxt=()=>{const z=shipZ();return (z?'Total con envío: ':'Total: ')+gs(cartT()+(z?+z.c||0:0))};
-const shipHTML=()=>(S.ship.length?`<h2>Envío</h2><div class="sec"><label class="fl">Ciudad o país de envío<select id="sh"><option value="">Elegí un destino</option>${S.ship.map(z=>`<option value="${esc(z.n)}"${z.n==shipSel?' selected':''}>${esc(z.n)}</option>`).join('')}</select></label><div id="shi" class="mut" style="line-height:1.6">${shipTxt()}</div></div>`:'')+`<h2 id="ct">${totTxt()}</h2>`;
-const shipUpd=()=>{const i=$('#shi');if(i)i.innerHTML=shipTxt();const c=$('#ct');if(c)c.textContent=totTxt()};
+const freeMin=()=>{const P=S.promo||PD;if(!(P.on&&P.t))return 0;const m=String(P.t).match(/\d{1,3}(?:[.,\s]\d{3})+|\d{4,}/);return m?+m[0].replace(/\D/g,''):0};
+const shipCost=(z,sub)=>{if(!z)return 0;const f=freeMin();return f>0&&sub>=f?0:(+z.c||0)};
+const freeTxt=()=>{const f=freeMin();if(!f||!S.cart.length)return '';const t=cartT();return t>=f?`<b style="color:#ff8a1f">¡Tu pedido tiene envío gratis!</b> Superaste ${gs(f)}.`:`Te faltan <b style="color:#ff8a1f">${gs(f-t)}</b> para envío gratis (desde ${gs(f)}).`};
+const shipTxt=()=>{const z=shipZ();return z?`Envío a <b style="color:#fff">${esc(z.n)}</b>: <b style="color:#ff8a1f">${shipCost(z,cartT())>0?gs(shipCost(z,cartT())):'Gratis'}</b>${z.t?`<br>Tiempo estimado: <b style="color:#fff">${esc(z.t)}</b>`:''}`:'Elegí tu ciudad o país para ver el costo y el tiempo estimado.'};
+const totTxt=()=>{const z=shipZ();return (z?'Total con envío: ':'Total: ')+gs(cartT()+shipCost(z,cartT()))};
+const shipHTML=()=>(S.ship.length?`<h2>Envío</h2><div class="sec"><label class="fl">Ciudad o país de envío<select id="sh"><option value="">Elegí un destino</option>${S.ship.map(z=>`<option value="${esc(z.n)}"${z.n==shipSel?' selected':''}>${esc(z.n)}</option>`).join('')}</select></label><div id="shi" class="mut" style="line-height:1.6">${shipTxt()}</div></div>`:'')+`<div id="fsb" class="mut" style="line-height:1.5;margin:0 0 8px">${freeTxt()}</div><h2 id="ct">${totTxt()}</h2>`;
+const shipUpd=()=>{const i=$('#shi');if(i)i.innerHTML=shipTxt();const c=$('#ct');if(c)c.textContent=totTxt();const f=$('#fsb');if(f)f.innerHTML=freeTxt()};
 let gLk=0;
 const picC=(p,c,s)=>{const i=(p.col||[]).indexOf(c),u=i>=0&&p.imgs&&p.imgs[i];return u?`<img src="${u}" alt="" loading="lazy" decoding="async" draggable="false">`:pic(p,s)};
 const pic=(p,s)=>p.img?`<img src="${p.img}" alt="" loading="lazy" decoding="async" draggable="false">`:ic(p.i,s);
@@ -781,7 +784,7 @@ document.addEventListener('click',e=>{{const fm=$('#fm');if(fm&&!fm.hidden&&!e.t
    if(error)throw error;const o=Array.isArray(data)?data[0]:data;if(!o||!o.order_number)throw new Error('respuesta inválida del servidor');
    const L=cart.map(c=>{const p=S.prods.find(p=>p.id==c.id);return p?`• [${p.code||''}] ${p.n}${[c.col,c.sz].filter(Boolean).length?' ('+[c.col,c.sz].filter(Boolean).join(', ')+')':''} x${c.q} — ${gs(p.p*c.q)}`:''}).filter(Boolean);
    S.cart=[];ordKey=null;shipSel='';save();refreshBadge();
-   wa(`Hola WIVE, quiero confirmar mi pedido N.º ${o.order_number}:\n${L.join('\n')}\n${zn?`Envío a ${zn.n}: ${+zn.c>0?gs(+zn.c):'Gratis'}${zn.t?' (tiempo estimado: '+zn.t+')':''}\n`:''}Total${zn?' con envío':''}: ${gs(+o.total+(zn?+zn.c||0:0))}\n\nNombre: ${nm}\nTel: ${tel}\nDirección: ${dir}`,w);
+   wa(`Hola WIVE, quiero confirmar mi pedido N.º ${o.order_number}:\n${L.join('\n')}\n${zn?`Envío a ${zn.n}: ${shipCost(zn,+o.total)>0?gs(shipCost(zn,+o.total)):'Gratis'}${zn.t?' (tiempo estimado: '+zn.t+')':''}\n`:''}Total${zn?' con envío':''}: ${gs(+o.total+shipCost(zn,+o.total))}\n\nNombre: ${nm}\nTel: ${tel}\nDirección: ${dir}`,w);
    render();
   }catch(e){if(w)try{w.close()}catch(_){}alert('No se pudo registrar el pedido, por eso no se abrió WhatsApp.\n'+((e&&e.message)||e))}finally{sending=false;if(t&&t.isConnected)t.disabled=false}})}
  else if(a=='ordx'){run(async()=>{const o=S.orders.find(x=>x.id==d.k);if(!o||!confirm('¿Eliminar este pedido del historial?'))return;const {error}=await sb.from('orders').delete().eq('id',o.uid);if(error)throw error;await loadAdmin();render()})}
@@ -854,7 +857,7 @@ const RM=matchMedia('(prefers-reduced-motion:reduce)').matches;let pd=0,tT,pv=''
 function reveal(){}
 
 function refreshBadge(){const n=S.cart.reduce((a,c)=>a+c.q,0);const b=$('#cb');b.innerHTML=ic('cart')+(n?`<span class="cnt">${n}</span>`:'')}
-function toast(msg,act){const t=$('#ts');t.innerHTML=`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ff6a00" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path class="ck" d="M5 12.5l4.5 4.5L19 7"/></svg><span>${msg}</span>`;t.classList.add('on');clearTimeout(tT);tT=setTimeout(()=>t.classList.remove('on'),2800)}
+function toast(msg,act){const t=$('#ts');t.innerHTML=`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ff6a00" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path class="ck" d="M5 12.5l4.5 4.5L19 7"/></svg><span>${msg}</span>`;t.classList.add('on');clearTimeout(tT);tT=setTimeout(()=>t.classList.remove('on'),Math.max(2800,String(msg).length*60))}
 const thumbsHTML=cs=>{const C=(cs||($('#pcl')?$('#pcl').value.split(','):[])).map(x=>String(x).trim());return IM.map((u,k)=>`<div class="th"><img src="${u}" alt="">${C[k]?`<span class="tg">${esc(C[k])}</span>`:''}<button type="button" class="rm" data-act="rmi" data-k="${k}" aria-label="Quitar">×</button></div>`).join('')};
 function boom(el,k){if(RM||!el)return;k=k||1;const r=el.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+r.height/2,C=['#ff6a00','#ff8a1f','#ffffff','#5984d2','#ffb347'];
  const ring=document.createElement('i');ring.style.cssText=`position:fixed;left:${x}px;top:${y}px;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;border:3px solid #ff6a00;z-index:90;pointer-events:none`;document.body.appendChild(ring);ring.animate([{transform:'scale(.3)',opacity:1},{transform:`scale(${6*k})`,opacity:0}],{duration:650,easing:'ease-out'}).onfinish=()=>ring.remove();
