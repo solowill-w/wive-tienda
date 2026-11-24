@@ -523,7 +523,7 @@ const XL=()=>window.XLSX?Promise.resolve():new Promise((ok,no)=>{const s=documen
 const COLS=['Código','Nombre','Categoría','Precio','Precio anterior','Descripción','Colores','Talles','Destacado','Datos adicionales'];
 
 /* ===== Categorías de tecnología ===== */
-const ABOUT_DEF='WIVE es una tienda especializada en tecnología y accesorios para celulares, con base en Ciudad del Este. Seleccionamos equipos y gadgets de calidad y te acompañamos en cada compra con atención directa por WhatsApp y envíos a todo el país.';
+const ABOUT_DEF='WIVE es una tienda dedicada exclusivamente a la tecnología, con base en Ciudad del Este. Seleccionamos equipos y gadgets de calidad y te acompañamos en cada compra con atención directa por WhatsApp y envíos a todo el país.';
 const TAX=[
  {id:'cel',n:'Celulares y Accesorios',d:'Equipos, fundas y cargadores',i:'phone',rx:/celu|telef|movil|smartphone|iphone|tablet|funda|estuche|protector de pantalla|vidrio templado|cargador|cable|power ?bank|holder/,s:['Celulares','Tablets','Fundas y Estuches','Protectores de Pantalla','Cargadores y Cables','Power Banks','Soportes y Holders','Selfie y Trípodes']},
  {id:'aud',n:'Audio',d:'Auriculares y speakers',i:'phones',rx:/auricul|audifon|audio|parlante|speaker|sonido|microfon|headphone|earbud/,s:['Auriculares','Earbuds Inalámbricos','Speakers','Barras de Sonido','Micrófonos']},
